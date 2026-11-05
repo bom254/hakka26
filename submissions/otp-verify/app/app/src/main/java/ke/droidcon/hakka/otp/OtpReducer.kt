@@ -10,10 +10,10 @@ object OtpReducer {
         if (index !in state.digits.indices) return state
 
         val sanitized = rawText.replace(OtpConfig.EMPTY_DIGIT_TEXT, "")
-        val digits = sanitized.filter(Char::isDigit)
+        val rawDigits = sanitized.filter(Char::isDigit)
         val previous = state.digits[index]
 
-        if (digits.isEmpty()) {
+        if (rawDigits.isEmpty()) {
             if (sanitized.isNotEmpty()) return state // Non-digit input is rejected.
             return when {
                 previous.isNotEmpty() -> clear(state, index)
@@ -21,6 +21,21 @@ object OtpReducer {
                 else -> state
             }
         }
+
+        // A filled box still contains its digit in the field text. Drop that leading
+        // digit so typing replaces it and a full-code paste is read as six new digits.
+        val digits = if (
+            previous.isNotEmpty() &&
+            rawDigits.length > 1 &&
+            rawDigits.startsWith(previous) &&
+            (rawDigits.length == 2 || rawDigits.length > OtpConfig.LENGTH)
+        ) {
+            rawDigits.drop(previous.length)
+        } else {
+            rawDigits
+        }
+
+        if (digits.isEmpty()) return state
 
         if (isPaste(digits, sanitized, previous)) {
             return paste(state, index, digits)

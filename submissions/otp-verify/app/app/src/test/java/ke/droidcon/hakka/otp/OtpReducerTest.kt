@@ -65,6 +65,24 @@ class OtpReducerTest {
     }
 
     @Test
+    fun typingOverAFilledBoxReplacesTheDigit() {
+        val filled = enter("4")
+        val state = OtpReducer.fieldChanged(filled, 0, "49")
+
+        assertEquals(listOf("9", "", "", "", "", ""), state.digits)
+        assertEquals(1, state.focusedIndex)
+    }
+
+    @Test
+    fun aFullPasteIntoAFilledBoxUsesThePastedCode() {
+        val filled = OtpUiState(digits = listOf("9", "", "", "", "", ""))
+        val state = OtpReducer.fieldChanged(filled, 0, "9" + "482913")
+
+        assertEquals("482913", state.code)
+        assertEquals(5, state.focusedIndex)
+    }
+
+    @Test
     fun backspaceOnAnEmptyBoxClearsThePreviousDigitAndMovesBack() {
         val state = OtpReducer.backspace(enter("4", "8"), 2)
 

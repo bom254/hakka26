@@ -102,13 +102,19 @@ fun OtpScreen(
     }
     val keyboard = LocalSoftwareKeyboardController.current
 
-    LaunchedEffect(state.focusedIndex, state.isVerifying, state.status) {
-        if (state.isVerifying || state.status == OtpStatus.Success) {
+    LaunchedEffect(state.focusedIndex, state.isVerifying) {
+        if (state.isVerifying) {
             keyboard?.hide()
         } else {
             focusRequesters[state.focusedIndex.coerceIn(0, OtpConfig.LENGTH - 1)]
                 .requestFocus()
             keyboard?.show()
+        }
+    }
+
+    LaunchedEffect(state.status) {
+        if (state.status == OtpStatus.Success) {
+            keyboard?.hide()
         }
     }
 
